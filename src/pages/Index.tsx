@@ -26,11 +26,12 @@ const Index = () => {
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
             <Button
+              onClick={() => navigate("/progress")}
               variant="outline"
-              onClick={() => navigate("/about")}
               className="border-primary text-primary hover:bg-primary/10"
             >
-              Learn More
+              View Progress
+              <Activity className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </div>
