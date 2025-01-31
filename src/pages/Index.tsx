@@ -6,6 +6,10 @@ import { ArrowRight, Mic2, Activity, Trophy } from "lucide-react";
 const Index = () => {
   const navigate = useNavigate();
 
+  const handleProgressClick = () => {
+    navigate("/progress");
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary/10">
       <div className="container px-4 py-16 mx-auto">
@@ -37,7 +41,7 @@ const Index = () => {
         </div>
 
         <div className="mt-20 grid grid-cols-1 gap-8 sm:grid-cols-3">
-          <Card className="p-6 hover:shadow-lg transition-shadow">
+          <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/exercises")}>
             <Mic2 className="h-12 w-12 text-primary mb-4" />
             <h3 className="text-xl font-semibold mb-2">Voice Analysis</h3>
             <p className="text-gray-600">
@@ -45,15 +49,15 @@ const Index = () => {
             </p>
           </Card>
 
-          <Card className="p-6 hover:shadow-lg transition-shadow">
+          <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={handleProgressClick}>
             <Activity className="h-12 w-12 text-secondary mb-4" />
             <h3 className="text-xl font-semibold mb-2">Track Progress</h3>
             <p className="text-gray-600">
-              Monitor your improvement over time with detailed progress tracking.
+              Monitor your improvement over time with detailed statistics and visual charts.
             </p>
           </Card>
 
-          <Card className="p-6 hover:shadow-lg transition-shadow">
+          <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/exercises")}>
             <Trophy className="h-12 w-12 text-accent mb-4" />
             <h3 className="text-xl font-semibold mb-2">Fun Exercises</h3>
             <p className="text-gray-600">
