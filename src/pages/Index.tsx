@@ -2,26 +2,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Mic2, Activity, Trophy } from "lucide-react";
-import { useAuth } from "@clerk/clerk-react";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { isSignedIn } = useAuth();
 
   const handleProgressClick = () => {
-    if (isSignedIn) {
-      navigate("/progress");
-    } else {
-      navigate("/sign-in");
-    }
-  };
-
-  const handleExercisesClick = () => {
-    if (isSignedIn) {
-      navigate("/exercises");
-    } else {
-      navigate("/sign-in");
-    }
+    navigate("/progress");
   };
 
   return (
@@ -36,37 +22,26 @@ const Index = () => {
             and achieve your speech goals with personalized exercises.
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
-            {isSignedIn ? (
-              <Button
-                onClick={() => navigate("/exercises")}
-                className="bg-primary hover:bg-primary/90"
-              >
-                Start Practice
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            ) : (
-              <>
-                <Button
-                  onClick={() => navigate("/sign-up")}
-                  className="bg-primary hover:bg-primary/90"
-                >
-                  Sign Up
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-                <Button
-                  onClick={() => navigate("/sign-in")}
-                  variant="outline"
-                  className="border-primary text-primary hover:bg-primary/10"
-                >
-                  Sign In
-                </Button>
-              </>
-            )}
+            <Button
+              onClick={() => navigate("/exercises")}
+              className="bg-primary hover:bg-primary/90"
+            >
+              Start Practice
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+            <Button
+              onClick={() => navigate("/progress")}
+              variant="outline"
+              className="border-primary text-primary hover:bg-primary/10"
+            >
+              View Progress
+              <Activity className="ml-2 h-4 w-4" />
+            </Button>
           </div>
         </div>
 
         <div className="mt-20 grid grid-cols-1 gap-8 sm:grid-cols-3">
-          <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={handleExercisesClick}>
+          <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/exercises")}>
             <Mic2 className="h-12 w-12 text-primary mb-4" />
             <h3 className="text-xl font-semibold mb-2">Voice Analysis</h3>
             <p className="text-gray-600">
@@ -82,7 +57,7 @@ const Index = () => {
             </p>
           </Card>
 
-          <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={handleExercisesClick}>
+          <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/exercises")}>
             <Trophy className="h-12 w-12 text-accent mb-4" />
             <h3 className="text-xl font-semibold mb-2">Fun Exercises</h3>
             <p className="text-gray-600">
