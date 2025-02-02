@@ -8,6 +8,9 @@ import Index from "./pages/Index";
 import Exercises from "./pages/Exercises";
 import Progress from "./pages/Progress";
 import NotFound from "./pages/NotFound";
+import Tips from "./pages/Tips";
+import WordRepition from "./pages/Wordrepition";
+import ScenarioTalks from "./pages/ScenarioTalks";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +32,9 @@ const App = () => (
         <Route path="/login" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/" element={<Index />} />
+          <Route path="/tips" element={<Tips />} />
+          <Route path="/ScenarioTalks" element={<ScenarioTalks />} />
+          <Route path="/wordrepition" element={<WordRepition />} />
           <Route path="/exercises" element={<Exercises />} />
           <Route path="/progress" element={<Progress />} />
           <Route path="*" element={<NotFound />} />

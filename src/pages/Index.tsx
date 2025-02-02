@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Mic2, Activity, Trophy } from "lucide-react";
+import { ArrowRight, Mic2, Activity, Trophy,Brain,MessageSquareText} from "lucide-react";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/clerk-react";
-import { motion } from "framer-motion"; 
+import { motion } from "framer-motion";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -15,7 +15,7 @@ const Index = () => {
 
       {/* If user is signed out, show login button */}
       <SignedOut>
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -30 }}
@@ -29,7 +29,7 @@ const Index = () => {
             Your AI-powered speech therapy companion. Sign in to start practicing!
           </p>
           <SignInButton mode="modal">
-            <Button 
+            <Button
               className="mt-6 px-6 py-3 text-lg font-semibold bg-white text-indigo-700 rounded-lg shadow-lg transition duration-300 hover:bg-indigo-600 hover:text-white transform hover:scale-105"
             >
               Sign In
@@ -41,7 +41,7 @@ const Index = () => {
       {/* Show main content only when the user is signed in */}
       <SignedIn>
         <div className="relative container px-4 py-16 mx-auto">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1 }}
@@ -73,33 +73,54 @@ const Index = () => {
             </div>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.5 }}
             className="mt-20 grid grid-cols-1 gap-8 sm:grid-cols-3"
           >
-            <Card className="p-6 hover:shadow-2xl transition-shadow cursor-pointer bg-white bg-opacity-10 rounded-lg border border-white/20 transform hover:scale-105" onClick={() => navigate("/exercises")}>
+            <Card
+              className="p-6 hover:shadow-2xl transition-shadow cursor-pointer bg-white bg-opacity-10 rounded-lg border border-white/20 transform hover:scale-105"
+              onClick={() => navigate("/tips")}
+            >
               <Mic2 className="h-12 w-12 text-white mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Voice Analysis</h3>
+              <h3 className="text-xl font-semibold mb-2">Speech Therapy Tips</h3>
               <p className="text-gray-200">
-                Get instant feedback on your pronunciation with AI-powered analysis.
+                Discover effective techniques to improve speech clarity with expert tips on articulation, breathing exercises, and vocal training.
               </p>
             </Card>
 
-            <Card className="p-6 hover:shadow-2xl transition-shadow cursor-pointer bg-white bg-opacity-10 rounded-lg border border-white/20 transform hover:scale-105" onClick={() => navigate("/progress")}>
-              <Activity className="h-12 w-12 text-white mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Track Progress</h3>
+            <Card
+              className="p-6 hover:shadow-2xl transition-shadow cursor-pointer bg-white bg-opacity-10 rounded-lg border border-white/20 transform hover:scale-105"
+              onClick={() => navigate("/ScenarioTalks")}
+            >
+              <MessageSquareText className="h-12 w-12 text-white mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Scenario Talks!</h3>
               <p className="text-gray-200">
-                Monitor your improvement over time with detailed statistics and visual charts.
+              Immerse yourself in real-world scenarios and practice dynamic conversations to build confidence and fluency.
+
               </p>
             </Card>
 
-            <Card className="p-6 hover:shadow-2xl transition-shadow cursor-pointer bg-white bg-opacity-10 rounded-lg border border-white/20 transform hover:scale-105" onClick={() => navigate("/exercises")}>
+            <Card
+              className="p-6 hover:shadow-2xl transition-shadow cursor-pointer bg-white bg-opacity-10 rounded-lg border border-white/20 transform hover:scale-105"
+              onClick={() => navigate("/exercises")}
+            >
               <Trophy className="h-12 w-12 text-white mb-4" />
               <h3 className="text-xl font-semibold mb-2">Fun Exercises</h3>
               <p className="text-gray-200">
                 Practice with engaging, gamified exercises designed for your needs.
+              </p>
+            </Card>
+
+            <Card
+              className="p-6 hover:shadow-2xl transition-shadow cursor-pointer bg-white bg-opacity-10 rounded-lg border border-white/20 transform hover:scale-105"
+              onClick={() => navigate("/wordrepition")}
+            >
+              <Brain className="h-12 w-12 text-white mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Test your Memory</h3>
+              <p className="text-gray-200">
+                A memory-based word repetition game that helps users practice speech recognition by repeating randomly displayed words.
               </p>
             </Card>
           </motion.div>
