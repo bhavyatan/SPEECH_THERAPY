@@ -1,9 +1,8 @@
-import { useState, useEffect, useRef } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageSquareText } from "lucide-react";
-
+import axios from "axios";
+import { useUser } from "@clerk/clerk-react";
 
 declare global {
   interface Window {
@@ -18,25 +17,64 @@ interface Scenario {
   difficulty: "Beginner" | "Intermediate" | "Advanced";
 }
 
+interface AnalysisResult {
+  scenario: string; // Scenario prompt
+  difficulty: string;
+  word_limit: number;
+  response: string; // AI-processed response
+  feedback: string;
+  timestamp?: string; // Optional timestamp
+}
+
 const sampleScenarios: Scenario[] = [
   {
-    prompt: "You're giving a 2-minute elevator pitch about your startup to a potential investor.",
-    wordLimit: 150,
-    difficulty: "Intermediate",
-  },
-  {
-    prompt: "You're apologizing to a customer for a service failure. Explain the issue and compensation.",
+    prompt: "You're at a networking event and need to introduce yourself and your profession in under a minute.",
     wordLimit: 100,
     difficulty: "Beginner",
   },
   {
-    prompt: "Present a technical concept like neural networks to a non-technical audience in 3 minutes.",
+    prompt: "Explain the plot of your favorite movie to someone who has never seen it before.",
+    wordLimit: 150,
+    difficulty: "Beginner",
+  },
+  {
+    prompt: "You're in a job interview and the interviewer asks, 'Where do you see yourself in five years?'",
+    wordLimit: 120,
+    difficulty: "Intermediate",
+  },
+  {
+    prompt: "Convince your friend to start eating healthy by explaining its long-term benefits.",
+    wordLimit: 130,
+    difficulty: "Intermediate",
+  },
+  {
+    prompt: "You are a travel vlogger describing the beauty and attractions of your favorite city.",
     wordLimit: 200,
+    difficulty: "Intermediate",
+  },
+  {
+    prompt: "Debate why artificial intelligence is beneficial or harmful for society.",
+    wordLimit: 180,
     difficulty: "Advanced",
   },
   {
-    prompt: "Negotiate a salary increase with your manager, highlighting your achievements.",
-    wordLimit: 120,
+    prompt: "You are pitching a new eco-friendly product to a panel of investors.",
+    wordLimit: 160,
+    difficulty: "Advanced",
+  },
+  {
+    prompt: "Describe a historical event as if you were a news reporter covering it live.",
+    wordLimit: 175,
+    difficulty: "Advanced",
+  },
+  {
+    prompt: "You are explaining the rules of your favorite sport to someone who has never played it before.",
+    wordLimit: 140,
+    difficulty: "Beginner",
+  },
+  {
+    prompt: "Give a short motivational speech to inspire someone going through a tough time.",
+    wordLimit: 150,
     difficulty: "Intermediate",
   },
 ];
@@ -44,102 +82,183 @@ const sampleScenarios: Scenario[] = [
 export default function ScenarioTalks() {
   const [currentScenario, setCurrentScenario] = useState<Scenario | null>(null);
   const [userResponse, setUserResponse] = useState("");
-  const [feedback, setFeedback] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<AnalysisResult | null>(null);
+  const [loadingFeedback, setLoadingFeedback] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [listening, setListening] = useState(false);
   const recognition = useRef<any>(null);
+  const { user } = useUser(); // ✅ Clerk hook to get the user
+  const userId = user?.id; // ✅ Unique user ID
+  const [userProgress, setUserProgress] = useState<AnalysisResult[]>([]);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (SpeechRecognition) {
-        recognition.current = new SpeechRecognition();
-        recognition.current.continuous = true;
-        recognition.current.interimResults = true;
-        recognition.current.lang = "en-US";
-
-        recognition.current.onresult = (event: any) => {
-          const transcript = Array.from(event.results)
-            .map((result: any) => result[0].transcript)
-            .join("");
-          setUserResponse(transcript);
-        };
-
-        recognition.current.onerror = () => setListening(false);
-        recognition.current.onend = () => setListening(false);
+    const fetchUserProgress = async () => {
+      if (!userId) return;
+      try {
+        const response = await axios.get(`http://localhost:5000/api/progress/${userId}`);
+        setUserProgress(response.data.progress || []);
+      } catch (error) {
+        console.error("Error fetching user progress:", error);
       }
-    }
-    return () => recognition.current?.stop();
-  }, []);
+    };
 
-  const generateRandomScenario = () => {
-    const randomIndex = Math.floor(Math.random() * sampleScenarios.length);
-    setCurrentScenario(sampleScenarios[randomIndex]);
+    fetchUserProgress();
+  }, [userId]);
+
+  const analyzeResponse = async () => {
+    if (!currentScenario || !userResponse.trim() || !userId) return;
+
+    try {
+      setLoadingFeedback(true);
+      setError(null);
+      const response = await axios.post<AnalysisResult>(
+        "http://localhost:5000/api/analyze",
+        {
+          user_id: userId, // ✅ Sending user_id to Flask
+          scenario: currentScenario,
+          response: userResponse.trim(),
+        }
+      );
+      setFeedback(response.data);
+    } catch (error) {
+      setError("Failed to analyze response. Please try again.");
+    } finally {
+      setLoadingFeedback(false);
+    }
+  };
+
+  const generateScenario = () => {
+    const randomScenario = sampleScenarios[Math.floor(Math.random() * sampleScenarios.length)];
+    setCurrentScenario(randomScenario);
     setUserResponse("");
     setFeedback(null);
   };
 
+  const toggleRecording = () => {
+    if (listening) {
+      recognition.current.stop();
+      setListening(false);
+    } else {
+      recognition.current = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.current.continuous = true;
+      recognition.current.interimResults = false;
+      recognition.current.onresult = (event: any) => {
+        setUserResponse((prev) =>
+          prev + " " + event.results[event.results.length - 1][0].transcript
+        );
+      };
+      recognition.current.start();
+      setListening(true);
+    }
+  };
+
+  // Helper function to clean feedback text
+  const cleanFeedbackText = (text: string) => {
+    return text
+      .replace(/\*\*/g, '')
+      .replace(/```/g, '')
+      .replace(/\[|\]/g, '')
+      .split('\n')
+      .filter(line => line.trim())
+      .map(line => line.trim())
+      .join('\n');
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-400 to-purple-600 text-white p-6 flex flex-col items-center">
-      <h1 className="text-5xl font-bold text-center mb-8 flex items-center gap-3">
-        <MessageSquareText className="h-12 w-12 text-white" />
-        ScenarioTalks
-      </h1>
-
-      <div className="flex gap-6 mb-8">
-        <Button onClick={generateRandomScenario} className="bg-blue-300 hover:bg-blue-400 text-white text-lg px-6 py-3">
-          {currentScenario ? "Generate New Scenario" : "Start Practice"}
-        </Button>
-        <Button 
-          onClick={() => {
-            if (!recognition.current) return;
-            if (listening) {
-              recognition.current.stop();
-              setListening(false);
-            } else {
-              recognition.current.start();
-              setListening(true);
-            }
-          }}
-          className={listening ? "bg-red-500 hover:bg-red-600 text-white text-lg px-6 py-3" : "bg-gray-300 hover:bg-gray-400 text-black text-lg px-6 py-3"}
-        >
-          {listening ? "⏹ Stop Recording" : "🎤 Start Recording"}
-        </Button>
-      </div>
-
-      {currentScenario && (
-        <Card className="w-full max-w-2xl bg-white text-black shadow-lg p-6 mb-8">
-          <CardContent>
-            <h2 className="text-xl font-semibold">Scenario Brief:</h2>
-            <p className="mt-4 text-gray-700 text-lg">{currentScenario.prompt}</p>
-            <div className="text-md text-gray-500 mt-4">Difficulty: {currentScenario.difficulty} | Word Limit: {currentScenario.wordLimit}</div>
-          </CardContent>
-        </Card>
-      )}
-
-      <Textarea
-        placeholder={currentScenario ? "Start speaking or type your response..." : "Generate a scenario first"}
-        value={userResponse}
-        onChange={(e) => setUserResponse(e.target.value)}
-        className="w-full max-w-2xl p-4 rounded-lg text-black bg-white shadow-lg min-h-[150px] text-lg"
-        disabled={!currentScenario}
-      />
-
-      {currentScenario && (
-        <div className="flex justify-end w-full max-w-2xl mt-6">
-          <Button className="bg-blue-500 hover:bg-blue-600 text-white text-lg px-6 py-3" disabled={!userResponse.trim()}>
-            Analyze Response
+    <div
+      className="min-h-screen flex items-center justify-center p-6"
+      style={{
+        backgroundImage: "url('/back.jpg')", // Image in the public folder
+        backgroundSize: "cover", // Ensures the image covers the entire background
+        backgroundPosition: "center", // Centers the image
+      }}
+    >
+      <div className="bg-white shadow-lg rounded-xl p-6 max-w-2xl w-full">
+        <div className="flex justify-between mb-6">
+          <Button onClick={generateScenario} variant="default">
+            Generate Scenario
+          </Button>
+          <Button onClick={toggleRecording} variant="secondary">
+            {listening ? "Stop Recording" : "Start Recording"}
           </Button>
         </div>
-      )}
 
-      {feedback && (
-        <Card className="w-full max-w-2xl bg-white text-black shadow-lg p-6 mt-8">
-          <CardContent>
-            <h2 className="text-xl font-semibold">Analysis Results:</h2>
-            <pre className="whitespace-pre-wrap mt-4 text-gray-700 text-lg">{feedback}</pre>
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  );
+        {currentScenario && (
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold">{currentScenario.prompt}</h2>
+            <p className="text-gray-600">Word Limit: {currentScenario.wordLimit}</p>
+            <p className="text-gray-600">Difficulty: {currentScenario.difficulty}</p>
+          </div>
+        )}
+
+        <Textarea
+          value={userResponse}
+          placeholder="Recording in progress..."
+          className="w-full h-32 border p-2 rounded-lg"
+          disabled
+        />
+
+        <div className="flex justify-end gap-4 mt-4">
+          <Button onClick={analyzeResponse} disabled={!userResponse.trim() || loadingFeedback}>
+            {loadingFeedback ? "Analyzing..." : "Get AI Feedback"}
+          </Button>
+        </div>
+
+        {error && (
+          <div className="mt-4 p-4 bg-red-100 text-red-700 rounded-lg">
+            {error}
+          </div>
+        )}
+
+        {feedback && (
+          <div className="mt-6 p-4 bg-gray-100 rounded-lg">
+            <h3 className="text-lg font-semibold">Analysis Result</h3>
+            <p>
+              <strong>Scenario:</strong> {feedback.scenario}
+            </p>
+            <p>
+              <strong>Difficulty:</strong> {feedback.difficulty}
+            </p>
+            <p>
+              <strong>Word Limit:</strong> {feedback.word_limit}
+            </p>
+            <p>
+              <strong>Your Response:</strong> {feedback.response}
+            </p>
+            <div className="mt-2">
+              <strong>Feedback:</strong>
+              <div className="text-gray-700 mt-1">
+                {cleanFeedbackText(feedback.feedback).split('\n').map((paragraph, index) => (
+                  <p key={index} className="mb-2">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {userProgress.length > 0 && (
+          <div className="mt-6 p-4 bg-green-100 rounded-lg">
+            <h3 className="text-lg font-semibold">Your Progress</h3>
+            {userProgress.slice().reverse().map((entry, index) => (
+              <div key={index} className="mt-2 border-b pb-2">
+                <p><strong>Scenario:</strong> {entry.scenario ? entry.scenario : "N/A"}</p>
+                <p><strong>Difficulty:</strong> {entry.difficulty ? entry.difficulty : "N/A"}</p>
+                <p><strong>Response:</strong> {entry.response ? entry.response : "N/A"}</p>
+                <p><strong>Feedback:</strong></p>
+                <div className="text-gray-700 mt-1">
+                  {cleanFeedbackText(entry.feedback).split('\n').map((paragraph, index) => (
+                    <p key={index} className="mb-2">
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }

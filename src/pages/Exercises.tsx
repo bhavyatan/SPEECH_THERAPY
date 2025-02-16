@@ -121,7 +121,7 @@ const Exercises = () => {
       recognition.current.onresult = (event: any) => {
         const results = Array.from(event.results) as SpeechRecognitionResult[];
         const latestResult = results[results.length - 1];
-        
+
         if (latestResult.isFinal) {
           finalTranscript.current = latestResult[0].transcript;
         }
@@ -150,7 +150,7 @@ const Exercises = () => {
       mediaRecorder.current.onstop = () => {
         const audioBlob = new Blob(audioChunks.current, { type: "audio/webm" });
         const audioUrl = URL.createObjectURL(audioBlob);
-        
+
         setExercises((prev) =>
           prev.map((ex) =>
             ex.id === exerciseId ? { ...ex, audioURL: audioUrl } : ex
@@ -175,7 +175,7 @@ const Exercises = () => {
     }
     if (recognition.current) {
       recognition.current.stop();
-      
+
       recognition.current.onend = () => {
         setExercises(prev => prev.map(ex => {
           if (ex.id !== currentExerciseId) return ex;
@@ -207,14 +207,25 @@ const Exercises = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-blue-900 to-blue-500">
-      <div className="container py-8 space-y-8 relative z-10">
-        <h1 className="text-5xl font-extrabold text-white text-center tracking-wide flex items-center justify-center gap-3">
-          <Mic2 className="h-10 w-10 text-white" />
-          Exercises
-        </h1>
+    <div className="relative min-h-screen">
+      {/* Full-screen background image */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center" 
+        style={{ backgroundImage: "url('/back.jpg')" }}
+      ></div>
 
-        <Card className="w-full p-6 bg-white shadow-xl rounded-xl">
+      {/* Overlay to improve readability */}
+      <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+
+      {/* Main content */}
+      <div className="relative z-10 container py-8 space-y-8">
+         <h1 className="text-6xl font-extrabold text-white text-center tracking-wide flex items-center justify-center gap-3 font-poppins">
+         <Mic2 className="h-10 w-10 text-white" />
+            Speech Practice
+         </h1>
+
+
+        <Card className="w-full p-6 bg-white shadow-xl rounded-xl opacity-80">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg font-semibold text-primary">
               <Award className="h-6 w-6 text-primary" />
@@ -231,7 +242,7 @@ const Exercises = () => {
 
         <Button
           onClick={resetExercises}
-          className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-md shadow-md hover:bg-indigo-700"
+          className="w-full px-6 py-3 bg-gradient-to-r from-purple-700 to-purple-800 text-white rounded-md shadow-md hover:bg-purple-900"
         >
           Reset Exercises
         </Button>
@@ -241,7 +252,7 @@ const Exercises = () => {
             <Card 
               key={exercise.id}
               className={`p-6 shadow-lg rounded-xl ${
-                exercise.completed ? "bg-green-50 border-2 border-green-200" : "bg-white"
+                exercise.completed ? "bg-green-50 border-2 border-green-200" : "bg-white opacity-70"
               }`}
             >
               <CardHeader>
@@ -267,13 +278,13 @@ const Exercises = () => {
                 <div className="flex flex-col items-center space-y-4">
                   {!isRecording || currentExerciseId !== exercise.id ? (
                     <Button
-                      onClick={() => startRecording(exercise.id)}
-                      disabled={isRecording}
-                      className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-md shadow-md hover:bg-indigo-700"
-                    >
-                      <Mic className="mr-2 h-5 w-5" />
-                      {exercise.attempts > 0 ? "Retry" : "Start Recording"}
-                    </Button>
+                    onClick={() => startRecording(exercise.id)}
+                    disabled={isRecording}
+                    className="w-full px-6 py-3 bg-gradient-to-r from-purple-700 to-purple-800 text-white rounded-md shadow-md hover:bg-purple-900"
+                  >
+                    <Mic className="mr-2 h-5 w-5" />
+                    {exercise.attempts > 0 ? "Retry" : "Start Recording"}
+                  </Button>
                   ) : (
                     <Button
                       onClick={stopRecording}
