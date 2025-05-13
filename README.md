@@ -1,6 +1,6 @@
-# Talkify Therapy Gamify
+# Echoflow
 
-Talkify Therapy Gamify is a project aimed at gamifying therapy sessions to make them more engaging and interactive.
+This website offers various interactive tools designed to help individuals enhance their speech skills. Features include scenario-based conversations, memory games, tongue twisters, and a voice assistant—all aimed at improving pronunciation, fluency, and confidence. 
 
 ## Table of Contents
 
